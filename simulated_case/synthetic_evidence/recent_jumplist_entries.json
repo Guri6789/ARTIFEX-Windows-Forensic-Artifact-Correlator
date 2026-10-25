@@ -1,0 +1,20 @@
+[
+  {
+    "target_path": "C:\\Users\\jdoe\\Documents\\Confidential\\Client_Financials_Q4.xlsx",
+    "timestamp": "2026-10-24T14:02:00+00:00",
+    "volume_serial": "8C901234",
+    "drive_type": "Fixed"
+  },
+  {
+    "target_path": "C:\\Users\\jdoe\\Documents\\Confidential\\Patents_TradeSecrets.docx",
+    "timestamp": "2026-10-24T14:04:00+00:00",
+    "volume_serial": "8C901234",
+    "drive_type": "Fixed"
+  },
+  {
+    "target_path": "E:\\exfil_backup.7z",
+    "timestamp": "2026-10-24T14:22:00+00:00",
+    "volume_serial": "4A8F201B",
+    "drive_type": "Removable"
+  }
+]

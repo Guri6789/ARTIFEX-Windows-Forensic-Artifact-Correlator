@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis-idf"
+version = "1.0.0"
+description = "Windows Forensic Artifact Analysis Engine for Insider Data Theft"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Forensics Team" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: System :: Systems Administration",
+]
+
+[project.scripts]
+aegis-idf = "insider_forensics.cli:main"

@@ -1,0 +1,9 @@
+[
+  {
+    "file_name": "Client_Financials_Q4.xlsx",
+    "timestamp": "2026-10-24T14:02:00+00:00",
+    "timestomp_detected": true,
+    "reason": "$STANDARD_INFORMATION manipulated: Modified time backdated to 2021-01-01 while $FILE_NAME is 2026-10-24",
+    "EntryNumber": 48201
+  }
+]

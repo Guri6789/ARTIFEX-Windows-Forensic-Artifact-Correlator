@@ -1,0 +1,14 @@
+[
+  {
+    "file_name": "exfil_backup.7z",
+    "timestamp": "2026-10-24T14:09:00+00:00",
+    "reason": "USN_REASON_FILE_CREATE",
+    "usn": 1042001
+  },
+  {
+    "file_name": "exfil_backup.7z",
+    "timestamp": "2026-10-24T14:28:00+00:00",
+    "reason": "USN_REASON_FILE_DELETE",
+    "usn": 1042089
+  }
+]
