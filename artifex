@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""ARTIFEX executable launcher.
+
+Run './artifex' from terminal to launch the dedicated interactive console directly.
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# Set up environment path
+_root = Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
+
+from cli import main
+
+if __name__ == "__main__":
+    main()
+

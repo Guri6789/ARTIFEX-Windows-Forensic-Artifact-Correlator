@@ -10,9 +10,15 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Add project root to sys.path
+_root = Path(__file__).resolve().parent.parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 
 from insider_forensics.core.models import (
     ArtifactType,

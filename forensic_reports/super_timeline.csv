@@ -1,0 +1,13 @@
+Timestamp_UTC,Artifact_Source,Fact_Level,Event_Category,Summary,User,Process_Name,Command_Line,Source_File_Path,Volume_Serial,USB_Serial,Drive_Letter,Evidence_ID,Record_ID
+2026-10-24 14:02:00.000,NTFS_MFT,DIRECT_OBSERVATION,TIMESTOMP_DETECTED,Anti-forensic timestomp detected on Client_Financials_Q4.xlsx,,,,Client_Financials_Q4.xlsx,,,,EV-9C557D43CEA9,48201
+2026-10-24 14:02:00.000,LNK_SHORTCUT,DIRECT_OBSERVATION,RECON_ACCESS,Recent file access recorded in JumpList/LNK: C:\Users\jdoe\Documents\Confidential\Client_Financials_Q4.xlsx (VSN: 8C901234),,,,C:\Users\jdoe\Documents\Confidential\Client_Financials_Q4.xlsx,8C901234,,,EV-4009A8604AF5,
+2026-10-24 14:04:00.000,LNK_SHORTCUT,DIRECT_OBSERVATION,RECON_ACCESS,Recent file access recorded in JumpList/LNK: C:\Users\jdoe\Documents\Confidential\Patents_TradeSecrets.docx (VSN: 8C901234),,,,C:\Users\jdoe\Documents\Confidential\Patents_TradeSecrets.docx,8C901234,,,EV-4009A8604AF5,
+2026-10-24 14:08:00.000,PREFETCH,DIRECT_OBSERVATION,FILE_STAGING,Execution verified via Prefetch: 7Z.EXE (Run Count: 3),,7Z.EXE,,,,,,EV-CF339516FE5D,
+2026-10-24 14:09:00.000,NTFS_USN_JOURNAL,DIRECT_OBSERVATION,FILE_STAGING,Staging archive created: exfil_backup.7z,,,,exfil_backup.7z,,,,EV-A437CBDD4EE4,1042001
+2026-10-24 14:09:00.000,LNK_SHORTCUT,INFERRED_RELATIONSHIP,FILE_TRANSFER_USB,INFERRED LINKAGE: File 'exfil_backup.7z' was physically present on USB device (SanDisk Serial: 07018899AABB) based on exact Volume Serial Number match (VSN: 4A8F201B),,,,exfil_backup.7z,4A8F201B,07018899AABB,,EV-A437CBDD4EE4,
+2026-10-24 14:10:00.000,REGISTRY_USBSTOR,DIRECT_OBSERVATION,USB_ATTACH,"USB Removable Storage connected: SanDisk Ultra_Cruzer (Serial: 07018899AABB, Drive: E:, VSN: 4A8F201B)",jdoe,,,,4A8F201B,07018899AABB,E:,EV-C56FF12BAFAC,
+2026-10-24 14:10:05.000,EVENT_LOG_DRIVER_FRAMEWORKS,DIRECT_OBSERVATION,USB_ATTACH,"USB device connected / arrived logged via DriverFrameworks (Event 2003, Serial: 07018899AABB)",jdoe,,,,,07018899AABB,,EV-9C7E6F28233E,N/A
+2026-10-24 14:15:00.000,BROWSER_SQLITE,DIRECT_OBSERVATION,CLOUD_UPLOAD,Cloud upload endpoint visited (WeTransfer Direct Upload): https://wetransfer.com/upload,,,,,,,,EV-57B25A883A6C,
+2026-10-24 14:22:00.000,LNK_SHORTCUT,DIRECT_OBSERVATION,RECON_ACCESS,Recent file access recorded in JumpList/LNK: E:\exfil_backup.7z (VSN: 4A8F201B),,,,E:\exfil_backup.7z,4A8F201B,,,EV-4009A8604AF5,
+2026-10-24 14:28:00.000,NTFS_USN_JOURNAL,DIRECT_OBSERVATION,FILE_DELETION,File permanently deleted via NTFS USN: exfil_backup.7z,,,,exfil_backup.7z,,,,EV-A437CBDD4EE4,1042089
+2026-10-24 14:35:00.000,EVENT_LOG_SECURITY,DIRECT_OBSERVATION,LOG_CLEARED,CRITICAL ANTI-FORENSICS: Security Audit Log was explicitly CLEARED by user: jdoe,jdoe,,,,,,,EV-9C7E6F28233E,N/A

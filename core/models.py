@@ -44,6 +44,8 @@ class ArtifactType(str, enum.Enum):
     NTFS_MFT = "NTFS_MFT"
     NTFS_USN_JOURNAL = "NTFS_USN_JOURNAL"
     BROWSER_SQLITE = "BROWSER_SQLITE"
+    FTK_IMAGER_LOG = "FTK_IMAGER_LOG"
+    EVIDENCE_MANIFEST = "EVIDENCE_MANIFEST"
 
 
 class EventCategory(str, enum.Enum):
@@ -59,6 +61,7 @@ class EventCategory(str, enum.Enum):
     LOG_CLEARED = "LOG_CLEARED"                     # Anti-forensics: Security 1102 / System 104
     TIMESTOMP_DETECTED = "TIMESTOMP_DETECTED"       # Anti-forensics: SI vs FN discrepancy
     SUSPICIOUS_COMMAND = "SUSPICIOUS_COMMAND"       # CLI copy, certutil, bitsadmin
+    EVIDENCE_INGESTION = "EVIDENCE_INGESTION"       # Bitstream / triage collection via FTK Imager
 
 
 class IncidentStage(str, enum.Enum):

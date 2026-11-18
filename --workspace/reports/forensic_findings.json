@@ -1,0 +1,336 @@
+{
+  "investigation_schema_version": "1.0.0",
+  "hypothesis": {
+    "hypothesis_id": "HYP-031CF54C",
+    "title": "Reconstructed Insider Data Exfiltration Sequence",
+    "subject_user": "jdoe",
+    "time_window_start": "2026-10-24T14:02:00+00:00",
+    "time_window_end": "2026-10-24T14:35:00+00:00",
+    "target_files": [
+      "C:\\Users\\jdoe\\Documents\\Confidential\\Client_Financials_Q4.xlsx",
+      "C:\\Users\\jdoe\\Documents\\Confidential\\Patents_TradeSecrets.docx",
+      "E:\\exfil_backup.7z"
+    ],
+    "staging_containers": [
+      "exfil_backup.7z"
+    ],
+    "destination_devices": [
+      "SanDisk (Serial: 07018899AABB, Drive: E:)",
+      "USB (Serial: 07018899AABB, Drive: N/A)"
+    ],
+    "steps": [
+      {
+        "step_number": 1,
+        "stage": "RECONNAISSANCE",
+        "status": "CONFIRMED",
+        "description": "Insider accessed or browsed 3 sensitive file(s) via Explorer/LNK/JumpLists.",
+        "timestamp": "2026-10-24T14:02:00+00:00",
+        "supporting_events_count": 3,
+        "supporting_event_ids": [
+          "EVT-3D784C2674",
+          "EVT-D9860BB665",
+          "EVT-0D8B52E8B6"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.95
+      },
+      {
+        "step_number": 2,
+        "stage": "FILE_STAGING",
+        "status": "CONFIRMED",
+        "description": "Data staging activity detected: Archive containers identified (exfil_backup.7z) corroborated by Prefetch and NTFS USN Journal.",
+        "timestamp": "2026-10-24T14:08:00+00:00",
+        "supporting_events_count": 2,
+        "supporting_event_ids": [
+          "EVT-CC597AE3EF",
+          "EVT-C749D04F1A"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.9
+      },
+      {
+        "step_number": 3,
+        "stage": "DEVICE_PREPARATION",
+        "status": "CONFIRMED",
+        "description": "External storage device mounted: SanDisk (Serial: 07018899AABB, Drive: E:), USB (Serial: 07018899AABB, Drive: N/A).",
+        "timestamp": "2026-10-24T14:10:00+00:00",
+        "supporting_events_count": 2,
+        "supporting_event_ids": [
+          "EVT-A9D45D4045",
+          "EVT-0190A0B64F"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.98
+      },
+      {
+        "step_number": 4,
+        "stage": "DATA_TRANSFER",
+        "status": "UNCONFIRMED",
+        "description": "Data exfiltration via Removable USB Storage (VSN Correlated) and Web Cloud Storage Upload",
+        "timestamp": "2026-10-24T14:15:00+00:00",
+        "supporting_events_count": 2,
+        "supporting_event_ids": [
+          "EVT-D52248D051",
+          "INF-EAC4BEDA"
+        ],
+        "unconfirmed_notes": "Windows does not natively log raw file copy payload transfers to USB without Removable Storage Auditing (Event ID 4663). Transfer inferred from Volume Serial Number (VSN) linkage and contemporaneous device attachment.",
+        "confidence_score": 0.75
+      },
+      {
+        "step_number": 5,
+        "stage": "COVER_UP_ANTI_FORENSICS",
+        "status": "CONFIRMED",
+        "description": "Evidence tampering and cleanup activities detected (file deletion, timestomping, or log clearing).",
+        "timestamp": "2026-10-24T14:02:00+00:00",
+        "supporting_events_count": 3,
+        "supporting_event_ids": [
+          "EVT-B5DF14D984",
+          "EVT-459C394E41",
+          "EVT-8951C6155D"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.95
+      }
+    ],
+    "anomalies": [
+      {
+        "anomaly_id": "ANOM-C8944861",
+        "anomaly_type": "LOG_TAMPERING_CLEARED",
+        "severity": "CRITICAL",
+        "title": "Anti-Forensic Event Log Clearing (Security)",
+        "explanation": "The Security event log was deliberately wiped by user 'jdoe' at 2026-10-24T14:35:00+00:00. Windows Event ID: N/A.",
+        "investigative_impact": "Historical audit records, logon session history, and process execution events prior to this timestamp were permanently erased, destroying evidence of pre-attack reconnaissance.",
+        "affected_artifacts": [
+          "EVENT_LOG_SECURITY"
+        ],
+        "supporting_event_ids": [
+          "EVT-8951C6155D"
+        ],
+        "recommended_action": "Examine Volume Shadow Copies (VSS) or SIEM forwarders for preserved pre-clear logs."
+      },
+      {
+        "anomaly_id": "ANOM-213ED451",
+        "anomaly_type": "TIMESTAMP_CONTRADICTION_TIMESTOMP",
+        "severity": "HIGH",
+        "title": "Timestomp Anomaly Detected on Client_Financials_Q4.xlsx",
+        "explanation": "Inconsistency detected between NTFS $STANDARD_INFORMATION (user-modifiable) and $FILE_NAME (NTFS kernel-protected). Modified timestamp was altered by 0 seconds.",
+        "investigative_impact": "The target file was manipulated to appear older than it actually is, designed to bypass date-bounded triage acquisition scripts and mislead timeline analysis.",
+        "affected_artifacts": [
+          "NTFS_MFT"
+        ],
+        "supporting_event_ids": [
+          "EVT-B5DF14D984"
+        ],
+        "recommended_action": "Rely on kernel-enforced $FILE_NAME timestamps and $UsnJrnl change logs rather than Explorer timestamps."
+      },
+      {
+        "anomaly_id": "ANOM-7BD61C6F",
+        "anomaly_type": "GHOST_STAGING_REMOVAL",
+        "severity": "HIGH",
+        "title": "Ghost Staging Archive Destroyed: 'exfil_backup.7z'",
+        "explanation": "Staging archive container 'exfil_backup.7z' was actively populated/accessed and subsequently deleted via Shift+Delete/programmatic purge as evidenced by NTFS USN Journal records.",
+        "investigative_impact": "The actual payload container is absent from disk, preventing direct hash verification of file contents. However, metadata traces confirm its temporary existence during the incident.",
+        "affected_artifacts": [
+          "NTFS_USN_JOURNAL",
+          "PREFETCH"
+        ],
+        "supporting_event_ids": [
+          "EVT-459C394E41"
+        ],
+        "recommended_action": "Attempt file carving on unallocated NTFS clusters corresponding to the USN Journal FRN record."
+      },
+      {
+        "anomaly_id": "ANOM-D8C25C7D",
+        "anomaly_type": "EVIDENCE_GAP_UNAUDITED_TRANSFER",
+        "severity": "MEDIUM",
+        "title": "Evidence Gap: Removable Storage Object Auditing Disabled",
+        "explanation": "Removable device connection was observed, but granular File Read/Write events on the removable drive (Event ID 4663) were not recorded by Windows Security Auditing.",
+        "investigative_impact": "Exact byte-by-byte file copy actions must be proven through circumstantial correlation (Volume Serial Numbers in LNK files and temporal windowing) rather than direct transfer logs.",
+        "affected_artifacts": [
+          "EVENT_LOG_SECURITY"
+        ],
+        "supporting_event_ids": [],
+        "recommended_action": "Enable 'Audit Removable Storage' in Group Policy Object (GPO) for enterprise hosts."
+      }
+    ],
+    "confidence": {
+      "score": 0.99,
+      "rating": "VERY_HIGH",
+      "triggered_rules": [
+        "RULE_MALICIOUS_ANTI_FORENSICS_CORROBORATION",
+        "RULE_STAGING_DURING_REMOVABLE_MEDIA_SESSION",
+        "RULE_USB_VOLUME_SERIAL_EXFILTRATION_CORRELATION",
+        "RULE_EVIDENCE_PURGE_AND_COVER_UP_SEQUENCE"
+      ],
+      "corroborating_sources": [
+        "LNK_SHORTCUT (Reliability Weight: 0.85)",
+        "BROWSER_SQLITE (Reliability Weight: 0.80)",
+        "NTFS_USN_JOURNAL (Reliability Weight: 0.90)",
+        "NTFS_MFT (Reliability Weight: 0.75)",
+        "EVENT_LOG_SECURITY (Reliability Weight: 0.95)",
+        "REGISTRY_USBSTOR (Reliability Weight: 0.85)",
+        "PREFETCH (Reliability Weight: 0.90)",
+        "EVENT_LOG_DRIVER_FRAMEWORKS (Reliability Weight: 0.95)"
+      ],
+      "alternative_explanations": [
+        "Accidental Multi-Tasking: Removable drive was connected for charging or personal media while work documents were simultaneously open."
+      ],
+      "missing_evidence_gaps": [
+        "Exact File Copy Payload: Windows Removable Storage Auditing (Event 4663) or DLP agent logs not present.",
+        "Physical Removable Storage Device: The physical USB thumb drive has not been seized for forensic bitstream imaging."
+      ]
+    }
+  },
+  "anomalies": [
+    {
+      "anomaly_id": "ANOM-C8944861",
+      "anomaly_type": "LOG_TAMPERING_CLEARED",
+      "severity": "CRITICAL",
+      "title": "Anti-Forensic Event Log Clearing (Security)",
+      "explanation": "The Security event log was deliberately wiped by user 'jdoe' at 2026-10-24T14:35:00+00:00. Windows Event ID: N/A.",
+      "investigative_impact": "Historical audit records, logon session history, and process execution events prior to this timestamp were permanently erased, destroying evidence of pre-attack reconnaissance.",
+      "affected_artifacts": [
+        "EVENT_LOG_SECURITY"
+      ],
+      "supporting_event_ids": [
+        "EVT-8951C6155D"
+      ],
+      "recommended_action": "Examine Volume Shadow Copies (VSS) or SIEM forwarders for preserved pre-clear logs."
+    },
+    {
+      "anomaly_id": "ANOM-213ED451",
+      "anomaly_type": "TIMESTAMP_CONTRADICTION_TIMESTOMP",
+      "severity": "HIGH",
+      "title": "Timestomp Anomaly Detected on Client_Financials_Q4.xlsx",
+      "explanation": "Inconsistency detected between NTFS $STANDARD_INFORMATION (user-modifiable) and $FILE_NAME (NTFS kernel-protected). Modified timestamp was altered by 0 seconds.",
+      "investigative_impact": "The target file was manipulated to appear older than it actually is, designed to bypass date-bounded triage acquisition scripts and mislead timeline analysis.",
+      "affected_artifacts": [
+        "NTFS_MFT"
+      ],
+      "supporting_event_ids": [
+        "EVT-B5DF14D984"
+      ],
+      "recommended_action": "Rely on kernel-enforced $FILE_NAME timestamps and $UsnJrnl change logs rather than Explorer timestamps."
+    },
+    {
+      "anomaly_id": "ANOM-7BD61C6F",
+      "anomaly_type": "GHOST_STAGING_REMOVAL",
+      "severity": "HIGH",
+      "title": "Ghost Staging Archive Destroyed: 'exfil_backup.7z'",
+      "explanation": "Staging archive container 'exfil_backup.7z' was actively populated/accessed and subsequently deleted via Shift+Delete/programmatic purge as evidenced by NTFS USN Journal records.",
+      "investigative_impact": "The actual payload container is absent from disk, preventing direct hash verification of file contents. However, metadata traces confirm its temporary existence during the incident.",
+      "affected_artifacts": [
+        "NTFS_USN_JOURNAL",
+        "PREFETCH"
+      ],
+      "supporting_event_ids": [
+        "EVT-459C394E41"
+      ],
+      "recommended_action": "Attempt file carving on unallocated NTFS clusters corresponding to the USN Journal FRN record."
+    },
+    {
+      "anomaly_id": "ANOM-D8C25C7D",
+      "anomaly_type": "EVIDENCE_GAP_UNAUDITED_TRANSFER",
+      "severity": "MEDIUM",
+      "title": "Evidence Gap: Removable Storage Object Auditing Disabled",
+      "explanation": "Removable device connection was observed, but granular File Read/Write events on the removable drive (Event ID 4663) were not recorded by Windows Security Auditing.",
+      "investigative_impact": "Exact byte-by-byte file copy actions must be proven through circumstantial correlation (Volume Serial Numbers in LNK files and temporal windowing) rather than direct transfer logs.",
+      "affected_artifacts": [
+        "EVENT_LOG_SECURITY"
+      ],
+      "supporting_event_ids": [],
+      "recommended_action": "Enable 'Audit Removable Storage' in Group Policy Object (GPO) for enterprise hosts."
+    }
+  ],
+  "evidence_manifest": {
+    "tracker_version": "1.0.0-aegis",
+    "generated_timestamp": "2026-11-18T07:53:00.878795+00:00",
+    "total_evidence_files": 7,
+    "evidence": [
+      {
+        "evidence_id": "EV-57B25A883A6C",
+        "file_path": "D:\\#PROJECT\\ARTIFEX_17nov(2)\\ARTIFEX\\--workspace\\synthetic_evidence\\browser_history.json",
+        "file_name": "browser_history.json",
+        "file_size_bytes": 152,
+        "sha256": "57b25a883a6ccfaf05e26598e29db64112b2d039f5cab9211c0591d410d08875",
+        "sha1": "c13548d2d85febbc103d9cff445bf0071650058b",
+        "acquired_timestamp": "2026-11-18T07:53:00.872739+00:00",
+        "artifact_category": "BROWSER_ACTIVITY_SQLITE",
+        "notes": "Parsed by BrowserHistoryParser v1.0.0",
+        "verification_status": "VERIFIED_UNCHANGED"
+      },
+      {
+        "evidence_id": "EV-9C557D43CEA9",
+        "file_path": "D:\\#PROJECT\\ARTIFEX_17nov(2)\\ARTIFEX\\--workspace\\synthetic_evidence\\mft_records.json",
+        "file_name": "mft_records.json",
+        "file_size_bytes": 289,
+        "sha256": "9c557d43cea94344961f5bf33cb9032ff84cbd7dbaa0c6e643bc1f266fb6522b",
+        "sha1": "b62046de9f1b446828a77bf2ac3288306774c9d8",
+        "acquired_timestamp": "2026-11-18T07:53:00.873285+00:00",
+        "artifact_category": "NTFS_FILESYSTEM_METADATA",
+        "notes": "Parsed by MftAndUsnParser v1.0.0",
+        "verification_status": "VERIFIED_UNCHANGED"
+      },
+      {
+        "evidence_id": "EV-CF339516FE5D",
+        "file_path": "D:\\#PROJECT\\ARTIFEX_17nov(2)\\ARTIFEX\\--workspace\\synthetic_evidence\\prefetch_execution.json",
+        "file_name": "prefetch_execution.json",
+        "file_size_bytes": 304,
+        "sha256": "cf339516fe5d377c64cad086e1e4d685c1503fc5505a4241d8670c51e8960e1a",
+        "sha1": "c41f55c194b69e96f79c6904867e4ae7e2fa25c1",
+        "acquired_timestamp": "2026-11-18T07:53:00.874244+00:00",
+        "artifact_category": "PREFETCH_EXECUTION",
+        "notes": "Parsed by PrefetchParser v2.0.0",
+        "verification_status": "VERIFIED_UNCHANGED"
+      },
+      {
+        "evidence_id": "EV-4009A8604AF5",
+        "file_path": "D:\\#PROJECT\\ARTIFEX_17nov(2)\\ARTIFEX\\--workspace\\synthetic_evidence\\recent_jumplist_entries.json",
+        "file_name": "recent_jumplist_entries.json",
+        "file_size_bytes": 589,
+        "sha256": "4009a8604af5c34365a683cd82b9471fb5646c11c9a761c1cc047f1d53e0d386",
+        "sha1": "285ee52d79c39e25ba3d25a9e95433cf2137b8dd",
+        "acquired_timestamp": "2026-11-18T07:53:00.874844+00:00",
+        "artifact_category": "SHORTCUT_JUMPLIST_ARTIFACT",
+        "notes": "Parsed by LnkAndJumpListParser v1.0.0",
+        "verification_status": "VERIFIED_UNCHANGED"
+      },
+      {
+        "evidence_id": "EV-9C7E6F28233E",
+        "file_path": "D:\\#PROJECT\\ARTIFEX_17nov(2)\\ARTIFEX\\--workspace\\synthetic_evidence\\security_driverframeworks_events.json",
+        "file_name": "security_driverframeworks_events.json",
+        "file_size_bytes": 358,
+        "sha256": "9c7e6f28233e88f42d961e7d7a91ab0992898aa82311cf9ebd3f903118b6cf8a",
+        "sha1": "406bb79518cd2bb9d28fe8cea1b46c0c4873e69b",
+        "acquired_timestamp": "2026-11-18T07:53:00.875529+00:00",
+        "artifact_category": "WINDOWS_EVENT_LOG",
+        "notes": "Parsed by WindowsEventLogParser v2.0.0",
+        "verification_status": "VERIFIED_UNCHANGED"
+      },
+      {
+        "evidence_id": "EV-C56FF12BAFAC",
+        "file_path": "D:\\#PROJECT\\ARTIFEX_17nov(2)\\ARTIFEX\\--workspace\\synthetic_evidence\\usbstor_registry.json",
+        "file_name": "usbstor_registry.json",
+        "file_size_bytes": 238,
+        "sha256": "c56ff12bafacb493a21a742405198ad6f3913db5fe7d3b3e5328e55fb47658c2",
+        "sha1": "201da81e0654891fe2debe77b71a1f02a6362324",
+        "acquired_timestamp": "2026-11-18T07:53:00.876286+00:00",
+        "artifact_category": "USB_STORAGE_ARTIFACT",
+        "notes": "Parsed by UsbArtifactParser v2.0.0",
+        "verification_status": "VERIFIED_UNCHANGED"
+      },
+      {
+        "evidence_id": "EV-A437CBDD4EE4",
+        "file_path": "D:\\#PROJECT\\ARTIFEX_17nov(2)\\ARTIFEX\\--workspace\\synthetic_evidence\\usn_journal_records.json",
+        "file_name": "usn_journal_records.json",
+        "file_size_bytes": 315,
+        "sha256": "a437cbdd4ee4b35f54a97b6e33ba24d69ac9e812b8e4abbb31a71e4e3f37ab7e",
+        "sha1": "088c9584b8da265c4abaa93a84917d165154d1ff",
+        "acquired_timestamp": "2026-11-18T07:53:00.876698+00:00",
+        "artifact_category": "NTFS_FILESYSTEM_METADATA",
+        "notes": "Parsed by MftAndUsnParser v1.0.0",
+        "verification_status": "VERIFIED_UNCHANGED"
+      }
+    ]
+  }
+}

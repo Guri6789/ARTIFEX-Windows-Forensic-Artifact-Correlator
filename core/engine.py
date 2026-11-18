@@ -2,7 +2,7 @@
 
 Orchestrates:
 1. Evidence intake & cryptographic hashing (Feature 3)
-2. Multi-artifact parsing (USB, EVTX, Prefetch, LNK, JumpList, MFT, USN, Browser)
+2. Multi-artifact parsing (USB, EVTX, Prefetch, LNK, JumpList, MFT, USN, Browser, FTK Imager)
 3. Cross-artifact correlation (Feature 4)
 4. Data-theft sequence reconstruction (Feature 1)
 5. Forensic anomaly & gap analysis (Feature 2)
@@ -13,8 +13,14 @@ Orchestrates:
 from __future__ import annotations
 
 from dataclasses import dataclass
+import sys
 from pathlib import Path
 from typing import List, Optional
+
+# Add project root to sys.path
+_root = Path(__file__).resolve().parent.parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 
 from insider_forensics.anomaly.gap_analyzer import ForensicAnomalyAnalyzer
 from insider_forensics.core.models import (
@@ -27,6 +33,10 @@ from insider_forensics.correlation.cross_correlator import (
     CrossArtifactCorrelator,
 )
 from insider_forensics.correlation.reconstruction import DataTheftReconstructionEngine
+from insider_forensics.imager.ftk_imager import (
+    FtkImagerLogParser,
+    FTKImagerController,
+)
 from insider_forensics.intelligence.confidence_engine import (
     ConfidenceAndExplanationEngine,
 )
@@ -63,6 +73,8 @@ class ForensicInvestigationEngine:
         self.mft_parser = MftAndUsnParser(self.tracker)
         self.evtx_parser = WindowsEventLogParser(self.tracker)
         self.browser_parser = BrowserHistoryParser(self.tracker)
+        self.ftk_parser = FtkImagerLogParser(self.tracker)
+        self.ftk_controller = FTKImagerController()
 
         self.correlator = CrossArtifactCorrelator()
         self.reconstructor = DataTheftReconstructionEngine()
@@ -74,7 +86,9 @@ class ForensicInvestigationEngine:
         self.csv_reporter = CsvTimelineReporter()
 
     def analyze_directory(self, target_dir: str | Path) -> InvestigationResult:
-        """Scan a triage folder, auto-dispatch parsers, and execute the 5-pillar analysis."""
+        """Scan a triage folder, auto-dispatch parsers via magic bytes & name patterns,
+        and execute the 5-pillar analysis.
+        """
         path = Path(target_dir)
         if not path.exists():
             raise FileNotFoundError(f"Target directory does not exist: {path}")
@@ -85,18 +99,62 @@ class ForensicInvestigationEngine:
         for f in files:
             name_lower = f.name.lower()
 
-            if any(k in name_lower for k in ("usbstor", "setupapi", "mounted", "usb")):
-                all_events.extend(self.usb_parser.parse(f))
-            elif any(k in name_lower for k in (".pf", "prefetch")):
-                all_events.extend(self.prefetch_parser.parse(f))
-            elif any(k in name_lower for k in (".lnk", "automaticdestinations", "customdestinations", "jumplist")):
-                all_events.extend(self.lnk_parser.parse(f))
-            elif any(k in name_lower for k in ("mft", "usn", "$j")):
-                all_events.extend(self.mft_parser.parse(f))
-            elif any(k in name_lower for k in (".evtx", "eventlog", "security", "driverframeworks", "system")):
+            # Read first 16 bytes for magic byte identification
+            header = b""
+            try:
+                with open(f, "rb") as fp:
+                    header = fp.read(16)
+            except Exception:
+                pass
+
+            # 1. FTK Imager Log or Summary text
+            if f.suffix.lower() == ".txt" or "summary" in name_lower or "ftk" in name_lower:
+                try:
+                    head_text = f.read_text(encoding="utf-8", errors="replace")[:2000]
+                    if FtkImagerLogParser.is_ftk_log(head_text):
+                        all_events.extend(self.ftk_parser.parse(f))
+                        continue
+                except Exception:
+                    pass
+
+            # 2. Binary EVTX (ElfFile\x00) or EVTX name pattern
+            if header.startswith(b"ElfFile\x00") or any(k in name_lower for k in (".evtx", "eventlog", "security", "driverframeworks", "winevt")):
                 all_events.extend(self.evtx_parser.parse(f))
-            elif any(k in name_lower for k in ("history", "places.sqlite", "browser")):
+
+            # 3. Binary Registry Hive ('regf') or Registry name pattern
+            elif header.startswith(b"regf") or any(k in name_lower for k in ("usbstor", "setupapi", "mounted", "system", "software", "ntuser", "sam", "registry", ".reg")):
+                all_events.extend(self.usb_parser.parse(f))
+
+            # 4. Windows Prefetch ('MAM\x04', 'SCCA') or .pf extension
+            elif header.startswith(b"MAM\x04") or b"SCCA" in header or any(k in name_lower for k in (".pf", "prefetch")):
+                all_events.extend(self.prefetch_parser.parse(f))
+
+            # 5. Shortcuts & JumpLists (.lnk header 0x4C, CFBF compound file)
+            elif header.startswith(b"\x4C\x00\x00\x00") or header.startswith(b"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1") or any(k in name_lower for k in (".lnk", "automaticdestinations", "customdestinations", "jumplist")):
+                all_events.extend(self.lnk_parser.parse(f))
+
+            # 6. NTFS Metadata (MFT 'FILE' or USN Journal)
+            elif header.startswith(b"FILE") or any(k in name_lower for k in ("mft", "usn", "$j")):
+                all_events.extend(self.mft_parser.parse(f))
+
+            # 7. Browser Databases (SQLite 'SQLite format 3\x00')
+            elif header.startswith(b"SQLite format 3") or any(k in name_lower for k in ("history", "places.sqlite", "browser")):
                 all_events.extend(self.browser_parser.parse(f))
+
+            # 8. Structured JSON files fallback
+            elif f.suffix.lower() == ".json":
+                if "usb" in name_lower or "mounted" in name_lower:
+                    all_events.extend(self.usb_parser.parse(f))
+                elif "prefetch" in name_lower:
+                    all_events.extend(self.prefetch_parser.parse(f))
+                elif "lnk" in name_lower or "jumplist" in name_lower or "destinations" in name_lower:
+                    all_events.extend(self.lnk_parser.parse(f))
+                elif "mft" in name_lower or "usn" in name_lower:
+                    all_events.extend(self.mft_parser.parse(f))
+                elif "security" in name_lower or "system" in name_lower or "driverframeworks" in name_lower:
+                    all_events.extend(self.evtx_parser.parse(f))
+                elif "browser" in name_lower or "history" in name_lower:
+                    all_events.extend(self.browser_parser.parse(f))
 
         # Pillar 4: Cross-Artifact Evidence Correlation
         bundle = self.correlator.correlate(all_events)

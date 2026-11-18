@@ -39,6 +39,8 @@ class ConfidenceAndExplanationEngine:
         ArtifactType.REGISTRY_USBSTOR: 0.85,             # PnP device enumerations
         ArtifactType.BROWSER_SQLITE: 0.80,               # Browser session databases
         ArtifactType.NTFS_MFT: 0.75,                     # Variable due to SI timestomp vulnerability
+        ArtifactType.FTK_IMAGER_LOG: 0.95,               # Cryptographically verified FTK acquisition log
+        ArtifactType.EVIDENCE_MANIFEST: 0.95,            # Verified evidence manifest
     }
 
     def evaluate(

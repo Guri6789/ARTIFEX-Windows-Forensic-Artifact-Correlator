@@ -1,0 +1,134 @@
+{
+  "case_id": "INC-REALTIME-001",
+  "generated_utc": "2026-11-18T08:16:14.827297+00:00",
+  "hypothesis": {
+    "hypothesis_id": "HYP-EF710A5A",
+    "title": "Reconstructed Insider Data Exfiltration Sequence",
+    "subject_user": "gurpr",
+    "time_window_start": "2026-11-18T07:09:04+00:00",
+    "time_window_end": "2026-11-18T08:16:13.204985+00:00",
+    "target_files": [
+      "C:\\Users\\gurpr\\OneDrive\\Desktop",
+      "C:\\Users\\gurpr\\Downloads",
+      "C:\\Users\\gurpr\\OneDrive\\Documents",
+      "C:4",
+      "C:\\Users\\gurpr\\Music",
+      "C:\\Users\\gurpr\\Videos",
+      "D:\\SEM II\\web tech\\labs folders",
+      "D:\\SEM III\\Design Patterns\\CODE",
+      "D:\\",
+      "D:\\SEM II\\web tech\\experiments",
+      "D:\\SEM II\\web tech\\APPS",
+      "C:\\Users\\gurpr\\Downloads\\metasploitable-linux-2.0.0",
+      "C:\\windows\\System32",
+      "D:\\New",
+      "E:\\ENTERTAINMENT",
+      "D:\\SEM III\\Advanced DF",
+      "D:\\MINOR PROJECT",
+      "D:\\MINOR PROJECT\\SELF PROGRESS",
+      "C:\\Users\\gurpr\\Downloads\\ARTIFEL",
+      "C:\\windows\\System32\\DriverStore\\FileRepository\\netbridge.inf_amd64_54bea4420c2d1d6c",
+      "e",
+      "D:\\SEM III",
+      "D:\\Placement PREP material",
+      "C:\\Program Files\\Git",
+      "C:\\Users\\gurpr\\Downloads\\ARTIFEX_17nov\\ARTIFEX",
+      "E:\\"
+    ],
+    "staging_containers": [],
+    "destination_devices": [],
+    "steps": [
+      {
+        "step_number": 1,
+        "stage": "RECONNAISSANCE",
+        "status": "CONFIRMED",
+        "description": "Insider accessed or browsed 26 sensitive file(s) via Explorer/LNK/JumpLists.",
+        "timestamp": "2026-11-18T08:16:13.204985+00:00",
+        "supporting_events_count": 26,
+        "supporting_event_ids": [
+          "EVT-FC987D09DE",
+          "EVT-D040ACC641",
+          "EVT-ED5181E798",
+          "EVT-7FF7B405D1",
+          "EVT-F4DA0C0381",
+          "EVT-9C7E3FCD32",
+          "EVT-5D69EA60BC",
+          "EVT-EFBB3B1289",
+          "EVT-D04A57A20A",
+          "EVT-246AB7F0BE",
+          "EVT-E81B63807E",
+          "EVT-E619567A01",
+          "EVT-F10792BFDD",
+          "EVT-E84AD6A412",
+          "EVT-10EB79FC84",
+          "EVT-CA29DB2ED3",
+          "EVT-A6A1AAC15F",
+          "EVT-E2F95F923F",
+          "EVT-E20AADE2A2",
+          "EVT-1ACD24752F",
+          "EVT-28A1CA1646",
+          "EVT-01BCB86675",
+          "EVT-F64450BECC",
+          "EVT-7CB2F007DB",
+          "EVT-64442B4AF7",
+          "EVT-883772ACE6"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.95
+      },
+      {
+        "step_number": 2,
+        "stage": "DATA_TRANSFER",
+        "status": "CONFIRMED",
+        "description": "Data exfiltration via Removable USB Storage (VSN Correlated)",
+        "timestamp": "2026-11-18T07:09:04+00:00",
+        "supporting_events_count": 1,
+        "supporting_event_ids": [
+          "RT-FILE-35DA6EF1"
+        ],
+        "unconfirmed_notes": "Windows does not natively log raw file copy payload transfers to USB without Removable Storage Auditing (Event ID 4663). Transfer inferred from Volume Serial Number (VSN) linkage and contemporaneous device attachment.",
+        "confidence_score": 0.85
+      }
+    ],
+    "anomalies": [],
+    "confidence": {
+      "score": 0.95,
+      "rating": "VERY_HIGH",
+      "triggered_rules": [],
+      "corroborating_sources": [
+        "JUMP_LIST (Reliability Weight: 0.85)",
+        "LNK_SHORTCUT (Reliability Weight: 0.85)"
+      ],
+      "alternative_explanations": [
+        "Authorized IT Administration: User was performing legitimate local data backup or routine system migration.",
+        "Accidental Multi-Tasking: Removable drive was connected for charging or personal media while work documents were simultaneously open."
+      ],
+      "missing_evidence_gaps": [
+        "Physical Removable Storage Device: The physical USB thumb drive has not been seized for forensic bitstream imaging.",
+        "Cloud Browser Data: Chromium/Firefox web history databases were not available in the acquired triage set."
+      ]
+    }
+  },
+  "anomalies": [],
+  "removable_drives": [
+    {
+      "letter": "F:",
+      "name": "Removable Disk",
+      "vsn": "9A7652BB",
+      "fs": "FAT32",
+      "serial": null
+    }
+  ],
+  "exfiltrated_files": [
+    {
+      "file_name": "implementa1ion_plan.md",
+      "path": "F:\\implementa1ion_plan.md",
+      "size_bytes": 8057,
+      "sha256": "ce685894b5991cb231fe4677dd7c64f27a8d14bfc31e20b9712dd381bd7e3983",
+      "md5": "56c634a168025ff0327ffd32645dea7b",
+      "timestamp": "2026-11-18T07:09:04+00:00",
+      "drive": "F:",
+      "vsn": "9A7652BB"
+    }
+  ]
+}

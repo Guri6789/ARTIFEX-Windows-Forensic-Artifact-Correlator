@@ -1,0 +1,193 @@
+{
+  "case_id": "INC-REALTIME-001",
+  "generated_utc": "2026-11-18T07:31:16.860389+00:00",
+  "hypothesis": {
+    "hypothesis_id": "HYP-3F4C518E",
+    "title": "Reconstructed Insider Data Exfiltration Sequence",
+    "subject_user": "gurpr",
+    "time_window_start": "2026-11-18T07:31:09.857210+00:00",
+    "time_window_end": "2026-11-18T07:31:16.858832+00:00",
+    "target_files": [
+      "C:\\Confidential\\Q4_Financial_Client_Database.xlsx"
+    ],
+    "staging_containers": [
+      "exfil_stage.zip"
+    ],
+    "destination_devices": [
+      "Kingston (Serial: 00187D0F9A82B05, Drive: E:)"
+    ],
+    "steps": [
+      {
+        "step_number": 1,
+        "stage": "RECONNAISSANCE",
+        "status": "CONFIRMED",
+        "description": "Insider accessed or browsed 1 sensitive file(s) via Explorer/LNK/JumpLists.",
+        "timestamp": "2026-11-18T07:31:09.857210+00:00",
+        "supporting_events_count": 1,
+        "supporting_event_ids": [
+          "SIM-LNK-15CBC7C8"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.95
+      },
+      {
+        "step_number": 2,
+        "stage": "FILE_STAGING",
+        "status": "CONFIRMED",
+        "description": "Data staging activity detected: Archive containers identified (exfil_stage.zip) corroborated by Prefetch and NTFS USN Journal.",
+        "timestamp": "2026-11-18T07:31:12.357683+00:00",
+        "supporting_events_count": 1,
+        "supporting_event_ids": [
+          "SIM-PF-3CF983DD"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.9
+      },
+      {
+        "step_number": 3,
+        "stage": "DEVICE_PREPARATION",
+        "status": "CONFIRMED",
+        "description": "External storage device mounted: Kingston (Serial: 00187D0F9A82B05, Drive: E:).",
+        "timestamp": "2026-11-18T07:31:13.857937+00:00",
+        "supporting_events_count": 1,
+        "supporting_event_ids": [
+          "SIM-USB-69CDC13C"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.98
+      },
+      {
+        "step_number": 4,
+        "stage": "DATA_TRANSFER",
+        "status": "UNCONFIRMED",
+        "description": "Data exfiltration via Removable USB Storage (VSN Correlated)",
+        "timestamp": "2026-11-18T07:31:15.358633+00:00",
+        "supporting_events_count": 2,
+        "supporting_event_ids": [
+          "SIM-XFER-FA83B852",
+          "INF-168C6153"
+        ],
+        "unconfirmed_notes": "Windows does not natively log raw file copy payload transfers to USB without Removable Storage Auditing (Event ID 4663). Transfer inferred from Volume Serial Number (VSN) linkage and contemporaneous device attachment.",
+        "confidence_score": 0.75
+      },
+      {
+        "step_number": 5,
+        "stage": "COVER_UP_ANTI_FORENSICS",
+        "status": "CONFIRMED",
+        "description": "Evidence tampering and cleanup activities detected (file deletion, timestomping, or log clearing).",
+        "timestamp": "2026-11-18T07:31:16.858832+00:00",
+        "supporting_events_count": 1,
+        "supporting_event_ids": [
+          "SIM-CLEAR-BE6DEBBD"
+        ],
+        "unconfirmed_notes": null,
+        "confidence_score": 0.95
+      }
+    ],
+    "anomalies": [
+      {
+        "anomaly_id": "ANOM-FCF3035E",
+        "anomaly_type": "LOG_TAMPERING_CLEARED",
+        "severity": "CRITICAL",
+        "title": "Anti-Forensic Event Log Clearing (Security)",
+        "explanation": "The Security event log was deliberately wiped by user 'gurpr' at 2026-11-18T07:31:16.858832+00:00. Windows Event ID: 1102/104.",
+        "investigative_impact": "Historical audit records, logon session history, and process execution events prior to this timestamp were permanently erased, destroying evidence of pre-attack reconnaissance.",
+        "affected_artifacts": [
+          "EVENT_LOG_SECURITY"
+        ],
+        "supporting_event_ids": [
+          "SIM-CLEAR-BE6DEBBD"
+        ],
+        "recommended_action": "Examine Volume Shadow Copies (VSS) or SIEM forwarders for preserved pre-clear logs."
+      },
+      {
+        "anomaly_id": "ANOM-3884E285",
+        "anomaly_type": "EVIDENCE_GAP_UNAUDITED_TRANSFER",
+        "severity": "MEDIUM",
+        "title": "Evidence Gap: Removable Storage Object Auditing Disabled",
+        "explanation": "Removable device connection was observed, but granular File Read/Write events on the removable drive (Event ID 4663) were not recorded by Windows Security Auditing.",
+        "investigative_impact": "Exact byte-by-byte file copy actions must be proven through circumstantial correlation (Volume Serial Numbers in LNK files and temporal windowing) rather than direct transfer logs.",
+        "affected_artifacts": [
+          "EVENT_LOG_SECURITY"
+        ],
+        "supporting_event_ids": [],
+        "recommended_action": "Enable 'Audit Removable Storage' in Group Policy Object (GPO) for enterprise hosts."
+      }
+    ],
+    "confidence": {
+      "score": 0.99,
+      "rating": "VERY_HIGH",
+      "triggered_rules": [
+        "RULE_MALICIOUS_ANTI_FORENSICS_CORROBORATION",
+        "RULE_STAGING_DURING_REMOVABLE_MEDIA_SESSION",
+        "RULE_USB_VOLUME_SERIAL_EXFILTRATION_CORRELATION",
+        "RULE_EVIDENCE_PURGE_AND_COVER_UP_SEQUENCE"
+      ],
+      "corroborating_sources": [
+        "PREFETCH (Reliability Weight: 0.90)",
+        "LNK_SHORTCUT (Reliability Weight: 0.85)",
+        "EVENT_LOG_SECURITY (Reliability Weight: 0.95)",
+        "REGISTRY_USBSTOR (Reliability Weight: 0.85)"
+      ],
+      "alternative_explanations": [
+        "Accidental Multi-Tasking: Removable drive was connected for charging or personal media while work documents were simultaneously open."
+      ],
+      "missing_evidence_gaps": [
+        "Exact File Copy Payload: Windows Removable Storage Auditing (Event 4663) or DLP agent logs not present.",
+        "Physical Removable Storage Device: The physical USB thumb drive has not been seized for forensic bitstream imaging.",
+        "Cloud Browser Data: Chromium/Firefox web history databases were not available in the acquired triage set."
+      ]
+    }
+  },
+  "anomalies": [
+    {
+      "anomaly_id": "ANOM-FCF3035E",
+      "anomaly_type": "LOG_TAMPERING_CLEARED",
+      "severity": "CRITICAL",
+      "title": "Anti-Forensic Event Log Clearing (Security)",
+      "explanation": "The Security event log was deliberately wiped by user 'gurpr' at 2026-11-18T07:31:16.858832+00:00. Windows Event ID: 1102/104.",
+      "investigative_impact": "Historical audit records, logon session history, and process execution events prior to this timestamp were permanently erased, destroying evidence of pre-attack reconnaissance.",
+      "affected_artifacts": [
+        "EVENT_LOG_SECURITY"
+      ],
+      "supporting_event_ids": [
+        "SIM-CLEAR-BE6DEBBD"
+      ],
+      "recommended_action": "Examine Volume Shadow Copies (VSS) or SIEM forwarders for preserved pre-clear logs."
+    },
+    {
+      "anomaly_id": "ANOM-3884E285",
+      "anomaly_type": "EVIDENCE_GAP_UNAUDITED_TRANSFER",
+      "severity": "MEDIUM",
+      "title": "Evidence Gap: Removable Storage Object Auditing Disabled",
+      "explanation": "Removable device connection was observed, but granular File Read/Write events on the removable drive (Event ID 4663) were not recorded by Windows Security Auditing.",
+      "investigative_impact": "Exact byte-by-byte file copy actions must be proven through circumstantial correlation (Volume Serial Numbers in LNK files and temporal windowing) rather than direct transfer logs.",
+      "affected_artifacts": [
+        "EVENT_LOG_SECURITY"
+      ],
+      "supporting_event_ids": [],
+      "recommended_action": "Enable 'Audit Removable Storage' in Group Policy Object (GPO) for enterprise hosts."
+    }
+  ],
+  "removable_drives": [
+    {
+      "letter": "E:",
+      "name": "KINGSTON_32GB",
+      "vsn": "A4B1C2D3",
+      "fs": "FAT32",
+      "serial": "00187D0F9A82B05"
+    }
+  ],
+  "exfiltrated_files": [
+    {
+      "file_name": "exfil_stage.zip",
+      "path": "E:\\exfil_stage.zip",
+      "size_bytes": 14850220,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "timestamp": "2026-11-18T07:31:15.358536+00:00",
+      "drive": "E:",
+      "vsn": "A4B1C2D3"
+    }
+  ]
+}

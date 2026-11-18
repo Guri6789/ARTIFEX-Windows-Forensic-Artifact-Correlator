@@ -1,13 +1,21 @@
-# Aegis-IDF: Windows Forensic Artifact Analysis Engine
+# ARTIFEX: Windows Forensic Artifact Correlator
 
 > **Insider Data Theft & Exfiltration Forensic Investigation Engine**  
-> *Core Forensics Implementation — Zero GUI, Pure High-Performance CLI & Correlator*
+> *Core Forensics & Live Incident Response — Zero GUI, Pure High-Performance CLI & Correlator*
 
 ---
 
-## 🌟 The 5 Core Unique Forensic Pillars
+## 🌟 The 5 Core Unique Forensic Pillars + FTK Imager Integration
 
-### 1. Data-Theft Reconstruction and USB Correlation Engine
+### 1. FTK Imager Live Acquisition & Manifest Corroboration Engine
+- **Automated FTK Imager CLI Bridge:** Executes `ftkimager.exe` for bitstream physical (`\\.\PhysicalDrive0`) or logical volume (`\\.\C:`) forensic disk imaging in Expert Witness (`.E01`) or raw (`.dd`) formats.
+- **AccessData Audit Manifest Ingestion:** Parses FTK Imager acquisition logs (`*.txt`, `Image_Summary.txt`), extracting verified hardware serial numbers, examiner notes, sector counts, and SHA-1/MD5 checksums directly into the non-repudiation chain of custody.
+- **Hardware-to-Registry Corroboration:** Cross-correlates physical drive serial numbers verified by FTK Imager with Windows `USBSTOR` registry keys and Volume Serial Numbers (VSN) in Shell Links.
+- **Live Windows Triage Collector:** Native incident response collector for Windows endpoints that preserves Event Logs, Registry hives, Prefetch, LNKs, JumpLists, Browser databases, and SetupAPI logs into an FTK Imager-compatible manifest.
+
+---
+
+### 2. Data-Theft Reconstruction and USB Correlation Engine
 - **Sequence Reconstruction:** Automates chronological reconstruction of the insider attack lifecycle across 5 stages:
   1. `RECONNAISSANCE` (File access via Shellbags / LNK / JumpLists)
   2. `FILE_STAGING` (Compression utility execution + temporary archive creation via Prefetch and USN Journal)
@@ -19,7 +27,7 @@
 
 ---
 
-### 2. Forensic Anomaly and Evidence-Gap Analyzer
+### 3. Forensic Anomaly and Evidence-Gap Analyzer
 - **Anti-Forensics Detection:** Automatically flags explicit event log clearings (Security Event ID 1102, System Event ID 104).
 - **Timestomp Detection:** Compares user-space `$STANDARD_INFORMATION` (SI) timestamps against NTFS kernel-protected `$FILE_NAME` (FN) timestamps to flag backdated file tampering and sub-second nanosecond zeroing (`.0000000`).
 - **Ghost Staging Recovery:** Reconstructs temporary staging containers (`.zip`, `.7z`) that were permanently purged (`Shift+Delete`) using immutable append-only NTFS `$UsnJrnl` (`$J`) change records.
@@ -28,7 +36,7 @@
 
 ---
 
-### 3. Evidence Integrity and Provenance Tracking
+### 4. Evidence Integrity and Provenance Tracking
 - **Cryptographic Hashing:** Computes SHA-256 and SHA-1 hashes for all acquired triage files before ingestion.
 - **Event Provenance:** Tags every single `ForensicEvent` with its source `evidence_id`, record ID, and parser version.
 - **Non-Repudiation Audit:** Provides an automated `--verify-integrity` audit function that re-hashes all evidence files to prove zero post-acquisition tampering.
@@ -36,38 +44,40 @@
 
 ---
 
-### 4. Cross-Artifact Evidence Correlation Engine
-- **Multi-Source Connectivity:** Unifies Windows Event Logs, Registry (`USBSTOR`, `MountedDevices`), Shell Link (`.lnk`) files, JumpLists (`AutomaticDestinations-ms` CFBF), NTFS filesystem metadata (`$MFT`, `$UsnJrnl`), and browser databases.
+### 5. Cross-Artifact Evidence Correlation Engine
+- **Real Binary Format Support:** Native pure-Python binary parsers for:
+  - Windows Event Logs: Binary `.evtx` (`ElfFile` / `ElfChnk` chunks, record headers with FILETIME decoding)
+  - Windows Registry Hives: Binary `SYSTEM`, `SOFTWARE`, `NTUSER.DAT` (`regf` cells, `USBSTOR`, `MountedDevices`)
+  - Windows Prefetch: Windows 10/11 MAM-compressed bitstreams and SCCA binary headers (v17/v23/v26/v30)
+  - Shell Links & JumpLists: Binary `.lnk` structures and OLE CFBF `AutomaticDestinations-ms`
+  - NTFS Filesystem Metadata: Raw binary `$MFT` (1024-byte records) and `$UsnJrnl:$J` streams
+  - Browser Databases: SQLite `History` and `places.sqlite`
 - **Multi-Dimensional Grouping:** Groups events across temporal sliding windows, canonical file paths, device serials, and user accounts.
-- **Fact Level Labeling:** Distinguishes observed physical facts (`DIRECT_OBSERVATION`) from analytical deductions (`INFERRED_RELATIONSHIP`).
-
----
-
-### 5. Explainable Investigation and Confidence Engine
-- **Weighted Mathematical Scoring:** Weights sources based on kernel reliability (EVTX: 0.95, USN: 0.90, Prefetch: 0.90, SI timestamp: 0.50).
-- **Rule Explainability:** Documents which forensic rules triggered (`RULE_MALICIOUS_ANTI_FORENSICS_CORROBORATION`, `RULE_STAGING_DURING_REMOVABLE_MEDIA_SESSION`, etc.).
-- **Alternative Explanations:** Evaluates benign alternative hypotheses (e.g., legitimate administrative backup, routine storage cleanup, phone charging).
-- **Identified Evidence Gaps:** Explicitly lists missing data sources (e.g., Removable Storage Auditing Event 4663, physical thumb drive bitstream image).
 
 ---
 
 ## 📂 Project Architecture
 
 ```
-insider_forensics/
-├── cli.py                         # Master CLI entrypoint
+ARTIFEX/
+├── cli.py                         # Master CLI entrypoint (analyze, acquire, verify-ftk, simulate)
+├── acquire_live_incident.ps1      # PowerShell Administrator live triage launcher
+├── acquire_live_incident.bat      # Windows batch elevated launcher
+├── imager/
+│   ├── __init__.py                # Imager exports
+│   └── ftk_imager.py              # FTKImagerController, FtkImagerLogParser & WindowsLiveTriageCollector
 ├── core/
 │   ├── models.py                  # ForensicEvent, FactLevel, ConfidenceRating dataclasses
-│   └── engine.py                  # Master coordination engine
+│   └── engine.py                  # Master coordination engine & magic-byte scanner
 ├── provenance/
 │   └── tracker.py                 # Pillar 3: Evidence integrity & SHA-256 tracker
 ├── parsers/
 │   ├── base.py                    # Base parser with FILETIME decoder & provenance hook
-│   ├── usbstor_parser.py          # USBSTOR, MountedDevices, SetupAPI & EventLogs
-│   ├── prefetch_parser.py         # .pf execution parsing & MAM decompression check
+│   ├── usbstor_parser.py          # Binary REGF hive parser, USBSTOR, MountedDevices & SetupAPI
+│   ├── prefetch_parser.py         # Binary SCCA parser & Windows 10/11 MAM decompressor
 │   ├── lnk_jumplist_parser.py     # Binary LNK headers, VSNs & CFBF JumpLists
 │   ├── mft_usn_parser.py          # $MFT (SI vs FN) & $UsnJrnl ghost staging recovery
-│   ├── eventlog_parser.py         # Security, System & DriverFrameworks EVTX logs
+│   ├── eventlog_parser.py         # Binary EVTX chunk scanner (Security, System, DriverFrameworks)
 │   └── browser_parser.py          # Chromium / Firefox SQLite cloud upload endpoints
 ├── correlation/
 │   ├── cross_correlator.py        # Pillar 4: Cross-artifact event grouping & VSN correlation
@@ -82,30 +92,86 @@ insider_forensics/
 │   └── csv_timeline.py            # Super Timeline CSV exporter (Timeline Explorer/Plaso)
 └── test_suite/
     ├── generator.py               # Synthetic realistic insider threat scenario generator
+    ├── sample_ftk_summary.txt     # Authentic FTK Imager acquisition log sample
+    ├── test_ftk_imager.py         # Automated tests for FTK Imager integration
+    ├── test_real_artifacts.py     # Automated tests for binary EVTX, Registry & Prefetch
+    ├── test_realtime_monitor.py   # Automated tests for real-time USB monitoring & reconstruction
     └── test_forensics.py          # Automated unit test suite verifying all 5 pillars
 ```
 
 ---
 
-## 🚀 Quickstart & Usage
+## 🚀 Quickstart & Real-Life Usage
 
-### 1. Run Built-in Automated Scenario Simulation
-Run the end-to-end simulation to generate a realistic multi-artifact case, parse it, correlate the events, and produce reports:
+### 1. Real-Time Removable Device (USB / Pendrive) Incident Monitoring
+Continuously monitor live Windows endpoint telemetry for removable drive attachments, live file copies, staging, and anti-forensics:
 
 ```bash
-python3 insider_forensics/cli.py simulate --workspace ./simulated_case
+# Live background monitoring on endpoint
+python cli.py watch --output ./realtime_alerts --interval 2.0 --threshold 0.70
+
+# Or run an authentic live incident simulation for demonstration/training:
+python cli.py watch --output ./realtime_alerts --simulate
 ```
 
-### 2. Analyze an Acquired Triage Folder
-To analyze acquired Windows forensic files (e.g. from KAPE, Velociraptor, or CyLR):
+During live monitoring, ARTIFEX:
+- Intercepts removable drive mounting via Windows Kernel32 APIs (`GetDriveTypeW`, `GetVolumeInformationW`).
+- Extracts Volume Serial Numbers (VSN) and maps them to physical `USBSTOR` vendor, model, and hardware serials.
+- Intercepts files written to the removable drive, computing on-the-fly SHA-256 / MD5 hashes.
+- Ingests DriverFrameworks, Storage-ClassPnP, Partition, and Security Event Logs in real-time.
+- Automatically reconstructs the 5-stage insider attack lifecycle and dynamically updates:
+  - `REALTIME_INCIDENT_REPORT.md` (Executive dossier & device transfer table)
+  - `realtime_findings.json` (Structured SIEM/SOAR findings)
+  - `realtime_super_timeline.csv` (Super Timeline)
+
+### 2. Dedicated Interactive Console REPL
+Launch the zero-dependency forensic command-line shell:
 
 ```bash
-python3 insider_forensics/cli.py analyze --source /path/to/triage_artifacts --output ./forensic_reports
+python cli.py console
+# Inside ARTIFEX console:
+artifex> watch --simulate
+artifex> status
+artifex> simulate
+artifex> test all
 ```
 
-### 3. Run Automated Unit Tests
+### 3. Live Windows Incident Triage Acquisition
+Run as **Administrator** on the target Windows endpoint:
+
+```powershell
+.\acquire_live_incident.ps1 -CaseId "INC-2026-001" -Examiner "Lead Investigator" -AutoAnalyze
+```
+
+Or using the Python CLI directly:
 ```bash
-python3 -m unittest discover -s insider_forensics/test_suite -p "test_*.py"
+python cli.py acquire --output ./evidence_dump --tool auto --case-id "INC-2026-001" --auto-analyze
+```
+
+### 4. Ingest & Correlate Real Forensic Triage / FTK Imager Exports
+Analyze a folder of triage artifacts acquired with FTK Imager, KAPE, or Velociraptor:
+
+```bash
+python cli.py analyze --source /path/to/acquired_triage --output ./forensic_reports
+```
+
+### 5. Verify FTK Imager Acquisition Log Integrity
+Verify an authentic FTK Imager `.txt` or `Image_Summary.txt` log manifest:
+
+```bash
+python cli.py verify-ftk --log /path/to/Image_Summary.txt
+```
+
+### 6. Run Automated Scenario Simulation
+Run the built-in simulation for verification, training, and demonstrations:
+
+```bash
+python cli.py simulate --workspace ./simulated_case
+```
+
+### 7. Run Automated Unit Tests
+```bash
+python -m unittest discover -s test_suite -p "test_*.py"
 ```
 
 ---

@@ -1,7 +1,7 @@
 # DIGITAL FORENSIC INVESTIGATION REPORT
 ## Windows Forensic Artifact Analysis: Insider Data Exfiltration
-**Generated:** 2026-10-25 08:07:35 UTC  
-**Investigation Case ID:** `HYP-E0B14132`  
+**Generated:** 2026-11-18 07:44:54 UTC  
+**Investigation Case ID:** `HYP-11A751D3`  
 **Subject of Investigation:** `jdoe`  
 **Incident Time Window:** `2026-10-24 14:02:00 UTC` to `2026-10-24 14:35:00 UTC`  
 **Confidence Rating:** **VERY_HIGH** (Score: 99.0%)  
@@ -34,7 +34,7 @@ The table below details each chronological stage of the incident, distinguishing
 ##### Step 2: [FILE_STAGING] - Status: CONFIRMED
 - **Summary:** Data staging activity detected: Archive containers identified (exfil_backup.7z) corroborated by Prefetch and NTFS USN Journal.
 - **Corroborating Forensic Events (2):**
-  - `[14:08:00]` **PREFETCH** (DIRECT_OBSERVATION): Prefetch execution recorded: 7Z.EXE (Runs: 3)
+  - `[14:08:00]` **PREFETCH** (DIRECT_OBSERVATION): Execution verified via Prefetch: 7Z.EXE (Run Count: 3)
   - `[14:09:00]` **NTFS_USN_JOURNAL** (DIRECT_OBSERVATION): Staging archive created: exfil_backup.7z
 
 ##### Step 3: [DEVICE_PREPARATION] - Status: CONFIRMED
@@ -95,13 +95,13 @@ The forensic anomaly analyzer detected **4 inconsistency or tampering indicator(
   - `RULE_EVIDENCE_PURGE_AND_COVER_UP_SEQUENCE`
 
 - **Corroborating Evidence Sources:**
-  - REGISTRY_USBSTOR (Reliability Weight: 0.85)
-  - BROWSER_SQLITE (Reliability Weight: 0.80)
-  - NTFS_MFT (Reliability Weight: 0.75)
   - EVENT_LOG_SECURITY (Reliability Weight: 0.95)
-  - LNK_SHORTCUT (Reliability Weight: 0.85)
-  - NTFS_USN_JOURNAL (Reliability Weight: 0.90)
+  - BROWSER_SQLITE (Reliability Weight: 0.80)
   - EVENT_LOG_DRIVER_FRAMEWORKS (Reliability Weight: 0.95)
+  - REGISTRY_USBSTOR (Reliability Weight: 0.85)
+  - LNK_SHORTCUT (Reliability Weight: 0.85)
+  - NTFS_MFT (Reliability Weight: 0.75)
+  - NTFS_USN_JOURNAL (Reliability Weight: 0.90)
   - PREFETCH (Reliability Weight: 0.90)
 
 - **Plausible Alternative Explanations Evaluated:**
@@ -117,10 +117,10 @@ All parsed forensic artifact containers have been verified with SHA-256 and SHA-
 
 | Evidence ID | Artifact File | Size (Bytes) | SHA-256 Hash | Integrity Status |
 | :--- | :--- | :--- | :--- | :--- |
-| `EV-3D9B7CAA0322` | `browser_history.json` | 146 | `3d9b7caa03223b16ed75...` | **VERIFIED_UNCHANGED** |
-| `EV-406653A91835` | `mft_records.json` | 281 | `406653a91835d2bd8d53...` | **VERIFIED_UNCHANGED** |
-| `EV-3B8463A356C2` | `security_driverframeworks_events.json` | 345 | `3b8463a356c29226d121...` | **VERIFIED_UNCHANGED** |
-| `EV-BA99F30AF9A8` | `recent_jumplist_entries.json` | 570 | `ba99f30af9a80d64c909...` | **VERIFIED_UNCHANGED** |
-| `EV-96D88FB1E2EB` | `usn_journal_records.json` | 302 | `96d88fb1e2eb9c6f5ede...` | **VERIFIED_UNCHANGED** |
-| `EV-188DE5643111` | `prefetch_execution.json` | 292 | `188de56431117a3f6f3f...` | **VERIFIED_UNCHANGED** |
-| `EV-DB63C78D8CC8` | `usbstor_registry.json` | 228 | `db63c78d8cc88efa146c...` | **VERIFIED_UNCHANGED** |
+| `EV-57B25A883A6C` | `browser_history.json` | 152 | `57b25a883a6ccfaf05e2...` | **VERIFIED_UNCHANGED** |
+| `EV-9C557D43CEA9` | `mft_records.json` | 289 | `9c557d43cea94344961f...` | **VERIFIED_UNCHANGED** |
+| `EV-CF339516FE5D` | `prefetch_execution.json` | 304 | `cf339516fe5d377c64ca...` | **VERIFIED_UNCHANGED** |
+| `EV-4009A8604AF5` | `recent_jumplist_entries.json` | 589 | `4009a8604af5c34365a6...` | **VERIFIED_UNCHANGED** |
+| `EV-9C7E6F28233E` | `security_driverframeworks_events.json` | 358 | `9c7e6f28233e88f42d96...` | **VERIFIED_UNCHANGED** |
+| `EV-C56FF12BAFAC` | `usbstor_registry.json` | 238 | `c56ff12bafacb493a21a...` | **VERIFIED_UNCHANGED** |
+| `EV-A437CBDD4EE4` | `usn_journal_records.json` | 315 | `a437cbdd4ee4b35f54a9...` | **VERIFIED_UNCHANGED** |

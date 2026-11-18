@@ -1,0 +1,13 @@
+[
+  {
+    "executable": "7Z.EXE",
+    "run_count": 3,
+    "last_run_times": [
+      "2026-10-24T14:08:00+00:00"
+    ],
+    "loaded_files": [
+      "C:\\Users\\jdoe\\Documents\\Confidential\\Client_Financials_Q4.xlsx",
+      "C:\\Users\\jdoe\\AppData\\Local\\Temp\\exfil_backup.7z"
+    ]
+  }
+]

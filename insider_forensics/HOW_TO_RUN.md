@@ -1,28 +1,203 @@
-# Aegis-IDF: Quick Execution & Operator Guide
+# ARTIFEX: Complete Operator & Real Incident Execution Guide
 
-See the full documentation in [`docs/HOW_TO_RUN.md`](docs/HOW_TO_RUN.md).
+> **Windows Forensic Artifact Analysis & FTK Imager Correlator for Insider Data Theft**  
+> *Production Version 2.0.0 — Live Incident Response & Real Binary Forensic Ingestion*
 
-### Quick Summary
+---
 
-#### 1. Run Automated Tests:
+## 1. System Requirements
+
+- **Operating System:** Windows 10/11 (Live endpoint acquisition or analysis), Linux (Ubuntu/Debian/Kali/RHEL), or macOS.
+- **Python Version:** Python **3.9 or newer** (tested on Python 3.9, 3.11, 3.12, and 3.13).
+- **FTK Imager (Optional for CLI acquisition, fully supported for ingestion):**
+  - AccessData / Exterro FTK Imager CLI (`ftkimager.exe`) or GUI (version 3.x, 4.x).
+  - Standard Windows paths automatically detected:
+    - `C:\Program Files\AccessData\FTK Imager\ftkimager.exe`
+    - `C:\Program Files (x86)\AccessData\FTK Imager\ftkimager.exe`
+    - `C:\Program Files\Exterro\FTK Imager\ftkimager.exe`
+    - `C:\Tools\ftkimager.exe`
+- **Dependencies:** **Zero external compiled dependencies required.** The engine features native pure-Python parsers for binary EVTX, binary Registry hives (REGF), Prefetch (MAM & SCCA), Shell Links (LNK), JumpLists (CFBF), MFT, and USN Journals.
+
+---
+
+## 2. Quick Verification (Run the Test Suite)
+
+Before processing live cases, verify that all engines, binary parsers, and FTK Imager modules pass:
+
 ```bash
-python3 -m unittest discover -s insider_forensics/test_suite -p "test_*.py"
+python3 -m unittest discover -s test_suite -p "test_*.py"
 ```
 
-#### 2. Run Built-In Multi-Artifact Simulation:
-```bash
-python3 insider_forensics/cli.py simulate --workspace ./simulated_case
+**Expected output:**
+```
+Ran 12 tests in 0.046s
+
+OK
 ```
 
-#### 3. Analyze Any Acquired Triage Folder:
+The automated test suite verifies:
+1. `test_pillar_1_data_theft_reconstruction`: Reconstructs 5-stage attack lifecycle.
+2. `test_pillar_2_forensic_anomalies_and_gaps`: Detects timestomping, ghost staging deletion, and event log clearing.
+3. `test_pillar_3_evidence_integrity_and_provenance`: Verifies SHA-256 calculation and non-repudiation audit.
+4. `test_pillar_4_cross_artifact_correlation`: Correlates USB serials to Volume Serial Numbers.
+5. `test_pillar_5_explainable_confidence_and_reporting`: Validates explainable rule scoring.
+6. `test_ftk_log_identification`: Verifies FTK Imager text report recognition.
+7. `test_ftk_metadata_extraction`: Extracts Case Number, Examiner, Serial, Sector Count, and Checksums.
+8. `test_ftk_log_parser_event_generation`: Validates FTK manifest ingestion into EvidenceTracker.
+9. `test_live_triage_collector_manifest_generation`: Validates live Windows triage manifest creation.
+10. `test_binary_evtx_parser`: Binary EVTX chunk and record parsing with FILETIME decoding.
+11. `test_binary_registry_hive_parser`: Binary REGF hive parsing for USBSTOR devices and drive mappings.
+12. `test_binary_scca_prefetch_parser`: SCCA prefetch header, execution counts, and timestamps.
+13. `test_removable_drive_watcher_detection`: Live Windows Kernel32 volume enumeration and VSN extraction.
+14. `test_removable_file_write_polling`: Removable drive file write interceptor and SHA-256 calculation.
+15. `test_live_event_log_xml_parsing`: Live Windows Event Log ingestion (DriverFrameworks, Security, System).
+16. `test_realtime_reconstruction_and_deliverables`: 5-stage real-time incident reconstruction and report generation.
+
+---
+
+## 3. Real-Life Incident Execution Mode: Real-Time Removable Device Monitoring
+
+To continuously monitor an active Windows host for removable storage (USB / pendrive) data theft incidents:
+
 ```bash
-python3 insider_forensics/cli.py analyze --source /path/to/triage_artifacts --output ./reports
+python cli.py watch --output ./realtime_alerts --interval 2.0 --threshold 0.70
 ```
 
-#### 4. Outputs Generated:
-- `FORENSIC_REPORT.md`: Comprehensive formal investigation dossier with chain-of-custody table.
-- `forensic_findings.json`: Machine-readable structured findings for SIEM / SOAR automation.
-- `super_timeline.csv`: Plaso and Eric Zimmerman's Timeline Explorer compatible CSV.
+### Or Run Instant Real-Time Incident Simulation (Demonstration & Training):
+```bash
+python cli.py watch --output ./realtime_alerts --simulate
+```
 
-For detailed detection rules, mathematical weights, and alternative hypotheses, see:
-[`docs/EXPLAINABLE_DETECTION_RULES.md`](docs/EXPLAINABLE_DETECTION_RULES.md)
+### Or Use the Dedicated Interactive Console Shell:
+```bash
+python cli.py console
+artifex> watch --simulate
+artifex> status
+```
+
+#### What happens during Real-Time Removable Device Monitoring:
+1. **Live USB / Removable Media Watcher:**
+   - Detects newly attached removable drives using Windows Kernel32 API (`GetDriveTypeW`, `GetVolumeInformationW`).
+   - Retrieves Drive Letter (e.g. `E:\`), Volume Label, and Volume Serial Number (VSN).
+   - Cross-references `HKLM\SYSTEM\CurrentControlSet\Enum\USBSTOR` and `MountedDevices` to link physical hardware serial numbers with drive letters.
+2. **Removable Drive File Interceptor & On-The-Fly Hashing:**
+   - Automatically monitors any connected removable drive for newly written or copied files.
+   - Computes SHA-256 and MD5 cryptographic hashes in real time.
+   - Flags staging archives (`.zip`, `.7z`, `.rar`, `.tar`) and sensitive business records (`.xlsx`, `.docx`, `.pdf`, `.sql`, `.key`).
+3. **Live Windows Event Log Ingestion:**
+   - Continuously ingests `Microsoft-Windows-DriverFrameworks-UserMode/Operational` (Events 2003, 2004, 2101, 2102).
+   - Continuously ingests `Microsoft-Windows-Partition/Diagnostic` (Event 1006) and `Storage-ClassPnP` (Event 507).
+   - Flags Security 4688 process execution (staging/CLI copy commands) and anti-forensic log clearing (Security 1102 / System 104).
+4. **Chronological 5-Stage Incident Reconstruction:**
+   - Chronologically connects events across: `RECONNAISSANCE` -> `FILE_STAGING` -> `DEVICE_PREPARATION` -> `DATA_TRANSFER` -> `COVER_UP_ANTI_FORENSICS`.
+   - Distinguishes directly verified facts from inferred relationships.
+5. **Dynamic Deliverables Maintenance:**
+   - Continuously maintains `REALTIME_INCIDENT_REPORT.md`, `realtime_findings.json`, and `realtime_super_timeline.csv`.
+
+---
+
+## 4. Real-Life Incident Execution Mode: Live Windows Acquisition
+
+For real-life incident response on a Windows endpoint, ARTIFEX provides automated acquisition:
+
+### Method A: One-Click Windows PowerShell Launcher (Recommended)
+Open PowerShell as **Administrator** and run:
+
+```powershell
+.\acquire_live_incident.ps1 -CaseId "INC-2026-001" -Examiner "Lead Investigator Vance" -Tool auto -AutoAnalyze
+```
+
+### Method B: One-Click Windows Batch Launcher
+Double-click or run from an elevated command prompt:
+
+```cmd
+acquire_live_incident.bat
+```
+
+### Method C: Master Python CLI Command
+```bash
+python cli.py acquire --output .\case_evidence --tool auto --case-id "INC-2026-001" --examiner "Investigator Vance" --auto-analyze
+```
+
+#### What happens during Live Acquisition:
+1. **Tool Selection:**
+   - If `ftkimager.exe` is installed, it runs FTK Imager CLI to acquire or extract evidence with hardware-level sector hashing.
+   - If FTK Imager CLI is not present, it automatically uses the built-in **Live Windows Triage Collector**.
+2. **Targeted Artifact Preserved:**
+   - **Event Logs:** `Security.evtx`, `System.evtx`, `DriverFrameworks-UserMode/Operational.evtx`, `TaskScheduler.evtx`.
+   - **Registry Hives:** `SYSTEM`, `SOFTWARE`, `SAM`, `SECURITY`, and all active user `NTUSER.DAT` hives.
+   - **Prefetch:** All `C:\Windows\Prefetch\*.pf` files.
+   - **LNK & JumpLists:** `%APPDATA%\Microsoft\Windows\Recent\*.lnk` and `AutomaticDestinations-ms`.
+   - **Browser Databases:** Chrome, Edge, and Firefox SQLite `History` / `places.sqlite`.
+   - **SetupAPI Logs:** `C:\Windows\INF\setupapi.dev.log` device installation records.
+3. **Audit Manifest Generation:**
+   - Creates `ftk_acquisition_summary.txt` in the exact format generated by AccessData FTK Imager.
+   - Computes SHA-256 and MD5 cryptographic hashes for every file.
+4. **Auto-Analyze (if enabled):**
+   - Automatically parses all acquired artifacts, correlates events, detects anti-forensics, and generates formal reports!
+
+---
+
+## 4. Execution Mode: Ingesting Real FTK Imager Acquisitions & Images
+
+When analyzing artifacts previously acquired with FTK Imager (or KAPE, Velociraptor, CyLR):
+
+```bash
+python cli.py analyze --source /path/to/ftk_acquired_triage --output ./investigation_reports
+```
+
+### Supported Real-World Artifact Formats:
+- **FTK Imager Logs:** `[Image_Name].txt`, `Image_Summary.txt`, `ftk_acquisition_summary.txt` (extracts verified MD5/SHA-1 and hardware serials).
+- **Binary Event Logs:** Raw Windows `.evtx` files (`ElfFile` / `ElfChnk` binary stream).
+- **Binary Registry Hives:** Raw Windows `SYSTEM`, `SOFTWARE`, `NTUSER.DAT` (`regf` binary).
+- **Prefetch Files:** Windows 10/11 MAM-compressed `.pf` and uncompressed SCCA `.pf` (versions 17, 23, 26, 30).
+- **Shortcuts & JumpLists:** Binary `.lnk` files and OLE Compound CFBF `*.automaticDestinations-ms`.
+- **NTFS Metadata:** Raw binary `$MFT` (1024-byte `FILE` records) and `$UsnJrnl:$J` transaction streams.
+- **Browser Databases:** Live SQLite `History` (Chrome/Edge) and `places.sqlite` (Firefox).
+- **SetupAPI Logs:** `setupapi.dev.log` text logs.
+- **Forensic Tool Exports:** JSON exports from EvtxECmd, PECmd, LECmd, MFTECmd, Registry Explorer.
+
+---
+
+## 5. Execution Mode: FTK Imager Log Verification
+
+To independently verify an FTK Imager acquisition log manifest:
+
+```bash
+python cli.py verify-ftk --log /path/to/TargetDrive_Summary.txt
+```
+
+**Output:**
+```
+[+] FTK Imager Acquisition Log Verification:
+    • Case Number:       INC-2026-9041
+    • Evidence Number:   EV-001
+    • Examiner:          Lead Forensic Investigator Vance
+    • Target Drive:      Samsung SSD 980 PRO 1TB (Serial: S5GXNX0T987654)
+    • Sector Count:      1953525168
+    • MD5 Hash:          87d8984f8d9b891823abce37719f9901 [Verified: True]
+    • SHA1 Hash:         a1b2c3d4e5f60718293a4b5c6d7e8f9012345678 [Verified: True]
+    • Image Segments:    1 segment(s)
+        - E:\Images\TargetDrive.E01
+
+[+] Evidentiary Integrity Status: VERIFIED & AUTHENTIC
+```
+
+---
+
+## 6. Execution Mode: Simulation Scenario (Training & Verification)
+
+To run the built-in synthetic scenario generator:
+
+```bash
+python cli.py simulate --workspace ./simulated_case
+```
+
+---
+
+## 7. Investigation Deliverables Generated
+
+Every investigation run automatically produces three formal artifacts:
+1. `FORENSIC_REPORT.md` — Formal executive and technical investigation dossier with chain-of-custody manifest.
+2. `forensic_findings.json` — Machine-readable structured findings for SIEM / SOAR automation.
+3. `super_timeline.csv` — Standardized Super Timeline compatible with **Eric Zimmerman's Timeline Explorer** and **Plaso**.
