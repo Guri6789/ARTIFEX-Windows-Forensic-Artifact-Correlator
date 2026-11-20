@@ -8,7 +8,6 @@
 ## 🌟 The 5 Core Unique Forensic Pillars + FTK Imager Integration
 
 ### 1. FTK Imager Live Acquisition & Manifest Corroboration Engine
-- **Automated FTK Imager CLI Bridge:** Executes `ftkimager.exe` for bitstream physical (`\\.\PhysicalDrive0`) or logical volume (`\\.\C:`) forensic disk imaging in Expert Witness (`.E01`) or raw (`.dd`) formats.
 - **AccessData Audit Manifest Ingestion:** Parses FTK Imager acquisition logs (`*.txt`, `Image_Summary.txt`), extracting verified hardware serial numbers, examiner notes, sector counts, and SHA-1/MD5 checksums directly into the non-repudiation chain of custody.
 - **Hardware-to-Registry Corroboration:** Cross-correlates physical drive serial numbers verified by FTK Imager with Windows `USBSTOR` registry keys and Volume Serial Numbers (VSN) in Shell Links.
 - **Live Windows Triage Collector:** Native incident response collector for Windows endpoints that preserves Event Logs, Registry hives, Prefetch, LNKs, JumpLists, Browser databases, and SetupAPI logs into an FTK Imager-compatible manifest.
@@ -181,4 +180,4 @@ python -m unittest discover -s test_suite -p "test_*.py"
 Every investigation run automatically produces three formal artifacts:
 1. `FORENSIC_REPORT.md` — Formal executive and technical investigation dossier with chain-of-custody manifest.
 2. `forensic_findings.json` — Machine-readable structured findings for SIEM / SOAR automation.
-3. `super_timeline.csv` — Standardized Super Timeline compatible with **Eric Zimmerman's Timeline Explorer** and **Plaso**.
+3. `super_timeline.csv` — Standardized Super Timeline compatible with **Eric Zimmerman's Timeline Explorer**.
